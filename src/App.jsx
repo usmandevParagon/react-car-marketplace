@@ -27,6 +27,8 @@ export default function App() {
           !car.make.toLowerCase().includes(k) &&
           !car.city.toLowerCase().includes(k) &&
           !car.transmission.toLowerCase().includes(k) &&
+          !car.color.toLowerCase().includes(k) &&
+          !car.fuelType.toLowerCase().includes(k) &&
           !car.year.toString().includes(k)
       ) {
         return false;
