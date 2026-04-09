@@ -74,7 +74,7 @@ export default function App() {
 
             <input
                 type="text"
-                placeholder="Search by keywords..."
+                placeholder="Search by keywords"
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
                 value={sidebarKeyword}
                 onChange={(e)=>setSidebarKeyword(e.target.value)}
