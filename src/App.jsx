@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import {useState, useMemo, useReducer} from "react";
 import { cars, makes, cities, bodyTypes, fuelTypes, transmissions, years } from "./data/cars";
+import CarCard from "./components/CarCard.jsx";
 
 const formatPrice = (p) => (
     p >= 10000000
@@ -7,11 +8,35 @@ const formatPrice = (p) => (
         : `${(p / 100000).toFixed(1)} Lac`
 )
 
+const initialState = {
+  city: [],
+  transmission: []
+};
 
+const ACTIONS = {
+  SELECT_CITY: 'select_city',
+  SELECT_TRANSMISSION: 'select_transmission'
+}
+
+function reducer (state, action) {
+  switch (action.type){
+    case ACTIONS.SELECT_CITY:
+      return {
+        ...state,
+        city: state.city.includes(action.payload) ? state.city.filter(c => c !== action.payload) : [...state.city, action.payload]
+      }
+    case ACTIONS.SELECT_TRANSMISSION:
+      return {
+        ...state,
+        transmission: state.transmission.includes(action.payload) ? state.transmission.filter(t => t!==action.payload) : [...state.transmission, action.payload]
+      }
+  }
+}
 export default function App() {
 
   const [keyword, setKeyword] = useState("")
   const [sidebarKeyword, setSidebarKeyword] = useState("")
+  const [state, dispatch] = useReducer(reducer, initialState)
 
   const filteredCars = cars.filter((car) => {
     // Top search bar filter
@@ -33,6 +58,13 @@ export default function App() {
       ) {
         return false;
       }
+    }
+
+    if (state.city.length > 0 && !state.city.includes(car.city)) {
+      return false
+    }
+    if(state.transmission.length > 0 && !state.transmission.includes(car.transmission)) {
+      return false
     }
 
     return true;
@@ -71,7 +103,15 @@ export default function App() {
           <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
 
             <h2 className="font-bold text-gray-800">Filters</h2>
+            <div>
+            {state.city.map((city) =>
+              <div className={`bg-gray-100 space-x-1 w-fit`}>
+                <span>{city}</span>
+                <span onClick={() => dispatch({type: ACTIONS.SELECT_CITY, payload: city})}>X</span>
+              </div>
+            )}
 
+            </div>
             <input
                 type="text"
                 placeholder="Search by keywords"
@@ -80,19 +120,51 @@ export default function App() {
                 onChange={(e)=>setSidebarKeyword(e.target.value)}
             />
 
-            <div>
-              <h3 className="text-sm font-semibold mb-2">Make</h3>
-              <div className="space-y-2 text-sm">
-                <label><input type="checkbox" /> Toyota</label>
-                <label><input type="checkbox" /> Honda</label>
-                <label><input type="checkbox" /> Suzuki</label>
-              </div>
-            </div>
+            <label>
+              Select City
+            </label>
+            {cities.map((city, index) =>
+                <div key={index}>
+                  <input type={`checkbox`} value={city} checked={state.city.includes(city)} onChange={e => dispatch({type: ACTIONS.SELECT_CITY, payload: e.target.value})} />
+                  <label>{city}</label>
+                </div>
+            )}
 
-            <div>
-              <h3 className="text-sm font-semibold mb-2">Price</h3>
-              <input type="range" className="w-full" />
-            </div>
+            {/*<select*/}
+            {/*  onChange={e => dispatch({type: ACTIONS.SELECT_CITY, payload: e.target.value})}*/}
+            {/*>*/}
+            {/*  <option value={''}>No city selected</option>*/}
+            {/*  {cities.map((city, index) =>*/}
+            {/*    <option key={index} value={city}>{city}</option>*/}
+            {/*  )}*/}
+            {/*</select>*/}
+
+
+            <label>
+              Transmission
+            </label>
+            {transmissions.map((transmission, index) =>
+              <div key={index}>
+                <input type={`checkbox`} value={transmission} checked={state.transmission.includes(transmission)} onChange={e => dispatch({type: ACTIONS.SELECT_TRANSMISSION, payload: e.target.value})}/>
+                <label>{transmission}</label>
+              </div>
+            )}
+
+            {/*<select*/}
+            {/*  onChange={(e)=> dispatch({type: ACTIONS.SELECT_TRANSMISSION, payload: e.target.value})}*/}
+            {/*>*/}
+            {/*  <option value={``}>No options selected</option>*/}
+            {/*  {transmissions.map((transmission, index)=>*/}
+            {/*      <option key={index} value={transmission}>{transmission}</option>*/}
+            {/*  )}*/}
+            {/*</select>*/}
+
+
+
+            {/*<div>*/}
+            {/*  <h3 className="text-sm font-semibold mb-2">Price</h3>*/}
+            {/*  <input type="range" className="w-full" />*/}
+            {/*</div>*/}
 
           </div>
         </aside>
@@ -119,32 +191,7 @@ export default function App() {
 
             {/* Card */}
             {filteredCars.map((car) => (
-                <div key={car.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                  {car.featured &&
-                      <span className={`p-1 bg-red-600 text-white absolute`}>Featured</span>
-                  }
-
-                  <img
-                      src={car.image}
-                      alt={`${car.title} image`}
-                      className="w-full h-48 object-cover"/>
-
-                  <div className="p-4">
-                    <h3 className="font-semibold text-sm">{car.title}</h3>
-                    <p className="text-green-600 font-bold text-lg">{formatPrice(car.price)}</p>
-
-                    <div className="text-xs text-gray-500 flex flex-wrap gap-2 mt-2">
-                      { [car.year, car.city, car.mileage, car.fuelType, car.transmission].map((item, index) => (
-                          <span key={index} className={`bg-gray-100 px-2 py-1 rounded-full`}>{`${item}`}</span>
-                      ))}
-                    </div>
-
-                    <div className="flex justify-between text-xs text-gray-400 mt-3">
-                      <span>Updated {`${car.postedDays}`} ago</span>
-                      <span>{`${car.seller}`}</span>
-                    </div>
-                  </div>
-                </div>
+                <CarCard  key={car.id} car={car} formatPrice={formatPrice}/>
             ))}
 
 
