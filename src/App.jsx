@@ -1,5 +1,5 @@
 import {useState, useMemo, useReducer} from "react";
-import { cars, makes, cities, bodyTypes, fuelTypes, transmissions, years } from "./data/cars";
+import { cars, makes, cities, bodyTypes, fuelTypes, transmissions, colors, years } from "./data/cars";
 import CarCard from "./components/CarCard.jsx";
 
 const formatPrice = (p) => (
@@ -9,13 +9,14 @@ const formatPrice = (p) => (
 )
 
 const initialState = {
-  city: [],
-  transmission: []
+  cities: [],
+  transmissions: []
 };
 
 const ACTIONS = {
   SELECT_CITY: 'select_city',
-  SELECT_TRANSMISSION: 'select_transmission'
+  SELECT_TRANSMISSION: 'select_transmission',
+  SELECT_RESET: 'reset'
 }
 
 function reducer (state, action) {
@@ -23,13 +24,15 @@ function reducer (state, action) {
     case ACTIONS.SELECT_CITY:
       return {
         ...state,
-        city: state.city.includes(action.payload) ? state.city.filter(c => c !== action.payload) : [...state.city, action.payload]
+        cities: state.cities.includes(action.payload) ? state.cities.filter(c => c !== action.payload) : [...state.cities, action.payload]
       }
     case ACTIONS.SELECT_TRANSMISSION:
       return {
         ...state,
-        transmission: state.transmission.includes(action.payload) ? state.transmission.filter(t => t!==action.payload) : [...state.transmission, action.payload]
+        transmissions: state.transmissions.includes(action.payload) ? state.transmissions.filter(t => t!==action.payload) : [...state.transmissions, action.payload]
       }
+    case ACTIONS.SELECT_RESET:
+      return initialState
   }
 }
 export default function App() {
@@ -60,16 +63,19 @@ export default function App() {
       }
     }
 
-    if (state.city.length > 0 && !state.city.includes(car.city)) {
+    if (state.cities.length > 0 && !state.cities.includes(car.city)) {
       return false
     }
-    if(state.transmission.length > 0 && !state.transmission.includes(car.transmission)) {
+    if(state.transmissions.length > 0 && !state.transmissions.includes(car.transmission)) {
       return false
     }
 
     return true;
   });
-
+  // const numberOfCars = filteredCars.filter(car){
+  //
+  // }
+  console.log(filteredCars)
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
 
@@ -104,12 +110,22 @@ export default function App() {
 
             <h2 className="font-bold text-gray-800">Filters</h2>
             <div>
-            {state.city.map((city) =>
-              <div className={`bg-gray-100 space-x-1 w-fit`}>
-                <span>{city}</span>
-                <span onClick={() => dispatch({type: ACTIONS.SELECT_CITY, payload: city})}>X</span>
-              </div>
-            )}
+              {state.cities.map((city, index) =>
+                <div key={index} className={`bg-gray-100 space-x-1 w-fit`}>
+                  <span>{city}</span>
+                  <span onClick={() => dispatch({type: ACTIONS.SELECT_CITY, payload: city})}>X</span>
+                </div>
+              )}
+              {state.transmissions.map((transmission, index) =>
+                  <div key={index} className={`bg-gray-100 space-x-1 w-fit`}>
+                    <span>{transmission}</span>
+                    <span onClick={() => dispatch({type: ACTIONS.SELECT_TRANSMISSION, payload: transmission})}>X</span>
+                  </div>
+              )}
+              {
+                (state.transmissions.length > 0 || state.cities.length > 0) &&
+                  <span className={`text-blue-500 underline`} onClick={()=> dispatch({type:ACTIONS.SELECT_RESET})}>Clear all</span>
+              }
 
             </div>
             <input
@@ -125,19 +141,13 @@ export default function App() {
             </label>
             {cities.map((city, index) =>
                 <div key={index}>
-                  <input type={`checkbox`} value={city} checked={state.city.includes(city)} onChange={e => dispatch({type: ACTIONS.SELECT_CITY, payload: e.target.value})} />
-                  <label>{city}</label>
+                  <div key={index}>
+                    <input type={`checkbox`} value={city} checked={state.cities.includes(city)} onChange={e => dispatch({type: ACTIONS.SELECT_CITY, payload: e.target.value})} />
+                    <label>{city}</label>
+                  </div>
+                  <span>{cars.filter(car => car.city === city).length}</span>
                 </div>
             )}
-
-            {/*<select*/}
-            {/*  onChange={e => dispatch({type: ACTIONS.SELECT_CITY, payload: e.target.value})}*/}
-            {/*>*/}
-            {/*  <option value={''}>No city selected</option>*/}
-            {/*  {cities.map((city, index) =>*/}
-            {/*    <option key={index} value={city}>{city}</option>*/}
-            {/*  )}*/}
-            {/*</select>*/}
 
 
             <label>
@@ -145,19 +155,11 @@ export default function App() {
             </label>
             {transmissions.map((transmission, index) =>
               <div key={index}>
-                <input type={`checkbox`} value={transmission} checked={state.transmission.includes(transmission)} onChange={e => dispatch({type: ACTIONS.SELECT_TRANSMISSION, payload: e.target.value})}/>
+                <input type={`checkbox`} value={transmission} checked={state.transmissions.includes(transmission)} onChange={e => dispatch({type: ACTIONS.SELECT_TRANSMISSION, payload: e.target.value})}/>
                 <label>{transmission}</label>
               </div>
             )}
 
-            {/*<select*/}
-            {/*  onChange={(e)=> dispatch({type: ACTIONS.SELECT_TRANSMISSION, payload: e.target.value})}*/}
-            {/*>*/}
-            {/*  <option value={``}>No options selected</option>*/}
-            {/*  {transmissions.map((transmission, index)=>*/}
-            {/*      <option key={index} value={transmission}>{transmission}</option>*/}
-            {/*  )}*/}
-            {/*</select>*/}
 
 
 
